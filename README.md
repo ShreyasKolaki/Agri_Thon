@@ -18,29 +18,78 @@ An AI-powered agricultural supply chain platform that connects farmers, buyers, 
 ## 🗂️ Project Structure
 
 ```
-├── main.py                  # FastAPI app entry point (supply chain API)
-├── app/
-│   └── main.py              # FastAPI app entry point (ML prediction API)
-│   └── ml/
-│       ├── train.py         # Model training script
-│       └── predict.py       # Inference logic
-│   └── utils/
-│       ├── agent1.py        # AgriSmart AI chatbot logic
-│       └── gemini.py        # Gemini API client with key rotation
-├── routers/
-│   ├── farmer.py            # Farmer routes (add crop, insights, profit)
-│   ├── buyer.py             # Buyer routes (browse, order)
-│   ├── delivery.py          # Delivery routes (accept, track)
-│   ├── orders.py            # Order CRUD
-│   ├── alerts.py            # Anomaly detection & price spike alerts
-│   └── auth_routes.py       # Signup & login
-├── database.py              # MongoDB connection (with FakeDB fallback)
-├── models.py                # Pydantic order model
-├── schemas.py               # Shared schemas (User, Crop, Prediction)
-├── auth.py                  # Password hashing utilities
-├── data/
-│   └── agri_market_dataset_1year.csv   # Training dataset (8,533 records)
-└── uploads/                 # Uploaded crop images
+Smart Agriculture/
+│
+├── Backend/
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── alerts.py          # Anomaly detection & price spike alerts
+│   │   ├── auth_routes.py     # Signup & login
+│   │   ├── buyer.py           # Browse crops & place orders
+│   │   ├── delivery.py        # Accept & track deliveries
+│   │   ├── farmer.py          # Add crops, price insights, profit
+│   │   └── orders.py          # Order CRUD
+│   ├── utils/
+│   │   ├── anomaly.py         # Anomaly detection logic
+│   │   ├── price_model.py     # Price prediction utility
+│   │   ├── profit.py          # Profit/ROI calculator
+│   │   └── translator.py      # Language translation utility
+│   ├── uploads/               # Uploaded crop images
+│   ├── .gitignore
+│   ├── auth.py                # Password hashing utilities
+│   ├── database.py            # MongoDB connection (with FakeDB fallback)
+│   ├── main.py                # FastAPI app entry point
+│   ├── models.py              # Pydantic order model
+│   ├── requirements.txt
+│   └── schemas.py             # Shared schemas (User, Crop)
+│
+├── Frontend/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   ├── AIChatbot.tsx
+│   │   │   ├── DashboardLayout.tsx
+│   │   │   └── NavLink.tsx
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   ├── pages/
+│   │   │   ├── BuyerDashboard.tsx
+│   │   │   ├── DeliveryDashboard.tsx
+│   │   │   ├── FarmerDashboard.tsx
+│   │   │   ├── Index.tsx
+│   │   │   ├── Landing.tsx
+│   │   │   ├── Login.tsx
+│   │   │   └── NotFound.tsx
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── .gitignore
+│   ├── index.html
+│   ├── package.json
+│   ├── tailwind.config.ts
+│   └── tsconfig.json
+│
+├── Model (RandomForestRegressor)/
+│   ├── data/
+│   │   └── agri_market_dataset_1year.csv   # Training dataset (8,533 records)
+│   ├── app/
+│   │   ├── ml/
+│   │   │   ├── train.py       # Model training script
+│   │   │   ├── predict.py     # Inference logic
+│   │   │   ├── model.pkl      # Trained model (generated)
+│   │   │   ├── commodity_encoder.pkl
+│   │   │   └── group_encoder.pkl
+│   │   └── utils/
+│   │       ├── agent1.py      # AgriSmart AI chatbot logic
+│   │       └── gemini.py      # Gemini API client with key rotation
+│   ├── main.py                # FastAPI ML prediction + chatbot API
+│   ├── schemas.py
+│   └── requirements.txt
+│
+├── .gitignore
+└── README.md
 ```
 
 ---
@@ -50,26 +99,26 @@ An AI-powered agricultural supply chain platform that connects farmers, buyers, 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/smart-agri-supply-chain.git
-cd smart-agri-supply-chain
+git clone https://github.com/ShreyasKolaki/Agri_Thon.git
+cd Agri_Thon
 ```
 
-### 2. Create a virtual environment
+---
+
+### 🔧 Backend Setup
 
 ```bash
+cd Backend
 python -m venv venv
-source venv/bin/activate        # On Windows: venv\Scripts\activate
-```
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
 
-### 3. Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
-
-Create a `.env` file in the root directory:
+Create a `.env` file inside `Backend/`:
 
 ```env
 MONGO_URI=your_mongodb_connection_string
@@ -77,34 +126,58 @@ DATABASE_NAME=agrithon
 GEMINI_API_KEYS=your_key_1,your_key_2,your_key_3
 ```
 
-> **Note:** `GEMINI_API_KEYS` accepts a comma-separated list of keys. The app automatically rotates between them on rate limits.
-> If `MONGO_URI` is not set or the connection fails, the app falls back to an in-memory database automatically.
+> `GEMINI_API_KEYS` accepts a comma-separated list — the app auto-rotates on rate limits.
+> If `MONGO_URI` is missing or unreachable, the app falls back to an in-memory database automatically.
 
-### 5. Train the ML model
+Run the backend:
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+---
+
+### 🤖 ML Model Setup
+
+```bash
+cd "Model (RandomForestRegressor)"
+python -m venv venv
+venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+Train the model (only needed once):
 
 ```bash
 python -m app.ml.train
 ```
 
-This reads `data/agri_market_dataset_1year.csv`, trains a Random Forest model, and saves `model.pkl`, `commodity_encoder.pkl`, and `group_encoder.pkl` to `app/ml/`.
+This reads `data/agri_market_dataset_1year.csv` and saves `model.pkl`, `commodity_encoder.pkl`, and `group_encoder.pkl` to `app/ml/`.
 
-### 6. Run the servers
+Run the ML API:
 
-**Supply Chain API** (farmers, buyers, delivery, auth):
 ```bash
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8001
 ```
 
-**ML Prediction API** (price prediction + chatbot):
+---
+
+### 🎨 Frontend Setup
+
 ```bash
-uvicorn app.main:app --reload --port 8001
+cd Frontend
+npm install
+npm run dev
 ```
+
+The frontend runs on `http://localhost:5173` by default.
 
 ---
 
 ## 🔌 API Overview
 
-### Authentication
+### Authentication (`localhost:8000`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/auth/signup` | Register as farmer, buyer, or delivery |
@@ -130,17 +203,17 @@ uvicorn app.main:app --reload --port 8001
 | POST | `/delivery/accept` | Accept a delivery |
 | GET | `/delivery/my-deliveries/{driver_id}` | View assigned deliveries |
 
-### Prediction & Chatbot
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/predict?commodity=Rice` | Predict next price for a commodity |
-| GET | `/chatbot?query=...` | Ask the AgriSmart AI assistant |
-
 ### Alerts
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/alerts/anomaly` | Detect anomalies in a price list |
 | POST | `/alerts/check-price-alert` | Check if a crop price triggers an alert |
+
+### Prediction & Chatbot (`localhost:8001`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/predict?commodity=Rice` | Predict next price for a commodity |
+| GET | `/chatbot?query=...` | Ask the AgriSmart AI assistant |
 
 ---
 
@@ -165,24 +238,23 @@ Powered by **Gemini 2.5 Flash**. Supports multi-key rotation for high availabili
 
 ---
 
-## 🔒 Security Notes
+## 🛠️ Tech Stack
 
-- Passwords are stored in **plain text** in the current version. Consider hashing with `bcrypt` (utility already available in `auth.py`) before deploying to production.
-- Keep your `.env` file out of version control — it is listed in `.gitignore`.
+| Layer | Technology |
+|-------|------------|
+| Frontend | React, TypeScript, Tailwind CSS, Vite |
+| Backend | FastAPI, Python |
+| Database | MongoDB Atlas (with in-memory fallback) |
+| ML Model | scikit-learn (Random Forest) |
+| AI Chatbot | Google Gemini 2.5 Flash |
+| Auth | Plain-text passwords (bcrypt-ready via `auth.py`) |
 
 ---
 
-## 📦 Dependencies
+## 🔒 Security Notes
 
-Key packages (see `requirements.txt` for full list):
-
-- `fastapi`, `uvicorn` — Web framework
-- `pymongo[srv]` — MongoDB driver
-- `scikit-learn`, `pandas`, `numpy` — ML & data processing
-- `google-genai` — Gemini AI API
-- `python-dotenv` — Environment variable management
-- `passlib[bcrypt]` — Password hashing utilities
-- `python-multipart` — File upload support
+- Passwords are stored in **plain text** in the current version. The `auth.py` bcrypt utility is already in place — wire it in before any production deployment.
+- Keep your `.env` file out of version control — it is listed in `.gitignore`.
 
 ---
 
