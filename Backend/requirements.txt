@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pymongo[srv]
+pydantic
+python-multipart
+python-dotenv
+passlib[bcrypt]
+bcrypt
+numpy
+scikit-learn
